@@ -41,7 +41,7 @@
       var scriptTag = document.createElement('script');
       scriptTag.src = 'main.dart.js';
       scriptTag.type = 'application/javascript';
-      document.body.append(scriptTag);
+      document.body.appendChild(scriptTag);
     }
 
     if ('serviceWorker' in navigator) {
@@ -54,7 +54,7 @@
         navigator.serviceWorker.register(serviceWorkerUrl)
           .then((reg) => {
             function waitForActivation(serviceWorker) {
-              serviceWorker.addEventListener('statechange', () => {
+              serviceWorker.addEventListener('statechange', function()  {
                 if (serviceWorker.state == 'activated') {
                   console.log('Installed new service worker.');
                   loadMainDartJs();
@@ -62,9 +62,14 @@
               });
             }
             if (!reg.active && (reg.installing || reg.waiting)) {
-              // No active web worker and we have installed or are installing
-              // one for the first time. Simply wait for it to activate.
-              waitForActivation(reg.installing ?? reg.waiting);
+                // No active web worker and we have installed or are installing
+                // one for the first time. Simply wait for it to activate.
+                if (reg.installing == null) {
+                    waitForActivation(reg.waiting);
+                }else{
+                    waitForActivation(reg.installing);
+                }
+
             } else if (!reg.active.scriptURL.endsWith(serviceWorkerVersion)) {
               // When the app updates the serviceWorkerVersion changes, so we
               // need to ask the service worker to update.
@@ -80,7 +85,7 @@
 
         // If service worker doesn't succeed in a reasonable amount of time,
         // fallback to plaint <script> tag.
-        setTimeout(() => {
+        setTimeout(function(){
           if (!scriptLoaded) {
             console.warn(
               'Failed to load app from service worker. Falling back to plain <script> tag.',
