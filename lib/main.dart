@@ -6,15 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutterapp/otherPage.dart';
 
-import 'HttpController.dart';
-import 'city.dart';
+import 'utils/HttpController.dart';
+import 'entity/city.dart';
+import 'callNative.dart';
 
 void main() {
   //去除沉浸式状态栏
-  if (Platform.isAndroid) {
-    SystemChrome.setSystemUIOverlayStyle(
-        SystemUiOverlayStyle(statusBarColor: Colors.transparent));
-  }
+//  if (Platform.isAndroid) {
+//    SystemChrome.setSystemUIOverlayStyle(
+//        SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+//  }
   runApp(MyApp());
 }
 
@@ -147,6 +148,27 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
               },
               child: Text("打开新页面"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // 打开`TipRoute`，并等待返回结果
+                var result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return CallNative(
+                        // 路由参数
+                        title: '调用android原生',
+                      );
+                    },
+                  ),
+                );
+                //刷新
+                setState(() {
+                  textInfo = result;
+                });
+              },
+              child: Text("调用android原生"),
             ),
             FutureBuilder(
               future: decodeCity(),
