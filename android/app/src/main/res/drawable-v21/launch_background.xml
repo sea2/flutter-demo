@@ -1,12 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Modify this file to customize your launch splash screen -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:drawable="?android:colorBackground" />
+    <!--这种方式拿到的是带有缩放的效果，即便给item 设置了gravity 并且从模拟器上看到的效果是不缩放的，但是真机上依旧是缩放的效果-->
 
-    <!-- You can insert your own image assets here -->
-    <!-- <item>
+    <item>
+        <color android:color="@android:color/white" />
+    </item>
+    <item
+        android:gravity="top"
+        android:top="100dp">
         <bitmap
-            android:gravity="center"
-            android:src="@mipmap/launch_image" />
-    </item> -->
+            android:gravity="center|top"
+            android:src="@mipmap/ic_first_page_top" />
+    </item>
+    <item
+        android:bottom="90dp"
+        android:gravity="bottom">
+        <bitmap
+            android:gravity="center|bottom"
+            android:src="@mipmap/ic_first_page_bottom" />
+    </item>
 </layer-list>

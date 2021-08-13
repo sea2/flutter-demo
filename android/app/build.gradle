@@ -41,13 +41,39 @@ android {
         versionName flutterVersionName
     }
 
-    buildTypes {
+    signingConfigs {
+
+        debug {
+            storeFile file('C:\\Users\\Administrator\\Desktop\\linking.jks')
+            storePassword 'lingking'
+            keyAlias = 'lingking'
+            keyPassword 'lingking'
+            v1SigningEnabled true
+            v2SigningEnabled false
+        }
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            storeFile file('C:\\Users\\Administrator\\Desktop\\linking.jks')
+            storePassword 'lingking'
+            keyAlias = 'lingking'
+            keyPassword 'lingking'
+            v1SigningEnabled true
+            v2SigningEnabled false
         }
     }
+
+
+    buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
 }
 
 flutter {

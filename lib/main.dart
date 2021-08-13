@@ -9,14 +9,22 @@ import 'package:flutterapp/otherPage.dart';
 import 'utils/HttpController.dart';
 import 'entity/city.dart';
 import 'callNative.dart';
+import 'view/imagePage.dart';
 
 void main() {
   //去除沉浸式状态栏
-//  if (Platform.isAndroid) {
-//    SystemChrome.setSystemUIOverlayStyle(
-//        SystemUiOverlayStyle(statusBarColor: Colors.transparent));
-//  }
-  runApp(MyApp());
+  try {
+    if (Platform.isAndroid) {
+      SystemChrome.setSystemUIOverlayStyle(
+          SystemUiOverlayStyle(statusBarColor: Colors.transparent));
+    }
+  } catch (e) {
+    print(e);
+  }
+
+  Future.delayed(const Duration(milliseconds: 1000), () {
+    runApp(MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {
@@ -119,11 +127,19 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               '本地json-$textInfo',
             ),
-            Divider(height: 1.0,indent: 100,color: Colors.red,),
+            Divider(
+              height: 1.0,
+              indent: 100,
+              color: Colors.red,
+            ),
             Text(
               '网络请求-$textHttp',
             ),
-            Divider(height: 1.0,indent: 100,color: Colors.red,),
+            Divider(
+              height: 1.0,
+              indent: 100,
+              color: Colors.red,
+            ),
             Text(
               '$_counter',
               style: Theme.of(context).textTheme.headline4,
@@ -148,6 +164,23 @@ class _MyHomePageState extends State<MyHomePage> {
                 });
               },
               child: Text("打开新页面"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // 打开`TipRoute`，并等待返回结果
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return ImagePage(
+                        // 路由参数
+                        title: 'Image',
+                      );
+                    },
+                  ),
+                );
+              },
+              child: Text("Image"),
             ),
             ElevatedButton(
               onPressed: () async {
