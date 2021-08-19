@@ -45,4 +45,19 @@ class HttpController {
       }
     }
   }
+
+
+  static void test( Function callback){
+    callback(1,"1");
+
+  }
+  static void test1(){
+    test((data,data2){
+
+    });
+
+  }
+
+
+
 }

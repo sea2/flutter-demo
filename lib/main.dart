@@ -1,17 +1,27 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui';
 
+import 'package:common_utils/common_utils.dart';
+import 'package:device_info/device_info.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutterapp/otherPage.dart';
 
+import 'ListViewPage.dart';
+import 'ui/uiPage.dart';
 import 'utils/HttpController.dart';
 import 'entity/city.dart';
 import 'callNative.dart';
 import 'view/imagePage.dart';
 
+final TAG = "main";
+
 void main() {
+//  debugPaintSizeEnabled = true; //打开视觉调试开关
+  LogUtil.init(isDebug: true);
   //去除沉浸式状态栏
   try {
     if (Platform.isAndroid) {
@@ -21,8 +31,12 @@ void main() {
   } catch (e) {
     print(e);
   }
+  //宽高
+  final width = window.physicalSize.width;
+  final height = window.physicalSize.height;
+  print("屏幕 宽度=$width  高度=$height");
 
-  Future.delayed(const Duration(milliseconds: 1000), () {
+  Future.delayed(const Duration(milliseconds: 100), () {
     runApp(MyApp());
   });
 }
@@ -67,11 +81,14 @@ class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
+int testInt=1;
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
   String textInfo = "默认信息";
   String textHttp = "http默认信息";
+
+  var isSuccess = false;
 
   void _incrementCounter() {
     setState(() {
@@ -88,6 +105,10 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     getData();
+    LogUtil.v("initState", tag: TAG);
+    getDeviceInfo().then((data) {
+      print("设备信息： ${data.model}  ${data.id}  ${data.device}");
+    });
   }
 
   @override
@@ -128,17 +149,21 @@ class _MyHomePageState extends State<MyHomePage> {
               '本地json-$textInfo',
             ),
             Divider(
+              color: Colors.grey,
               height: 1.0,
-              indent: 100,
-              color: Colors.red,
+              thickness: 1.0,
+              indent: 15.0,
+              endIndent: 15.0,
             ),
             Text(
               '网络请求-$textHttp',
             ),
             Divider(
+              color: Colors.grey,
               height: 1.0,
-              indent: 100,
-              color: Colors.red,
+              thickness: 1.0,
+              indent: 15.0,
+              endIndent: 15.0,
             ),
             Text(
               '$_counter',
@@ -185,6 +210,40 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               onPressed: () async {
                 // 打开`TipRoute`，并等待返回结果
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return UiPage(
+                        // 路由参数
+                        title: '布局测试',
+                      );
+                    },
+                  ),
+                );
+              },
+              child: Text("布局测试"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // 打开`TipRoute`，并等待返回结果
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return ListViewPage(
+                        // 路由参数
+                        title: 'Listview',
+                      );
+                    },
+                  ),
+                );
+              },
+              child: Text("Listview"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                // 打开`TipRoute`，并等待返回结果
                 var result = await Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -227,6 +286,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void getData() {
+
     //加载本地json
     rootBundle.loadString('assets/city.json').then((value) {
       final jsonMap = json.decode(value);
@@ -276,5 +336,113 @@ class _MyHomePageState extends State<MyHomePage> {
 
     City city = City.fromJson(jsonMap);
     return city;
+  }
+}
+
+/*
+    * @description:  获取设备信息
+    * @return {type} 设备信息
+    */
+Future<dynamic> getDeviceInfo() async {
+  DeviceInfoPlugin deviceInfo = new DeviceInfoPlugin();
+  var dataInfo;
+  if (Platform.isIOS) {
+    print('IOS设备：');
+    IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+    dataInfo = iosInfo;
+  } else if (Platform.isAndroid) {
+    print('Android设备');
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    dataInfo = androidInfo;
+  }
+  return dataInfo;
+}
+
+void getDeviceInfoCallBack(Function callback) async {
+  DeviceInfoPlugin deviceInfo = new DeviceInfoPlugin();
+  var dataInfo;
+  if (Platform.isIOS) {
+    IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+    dataInfo = iosInfo;
+  } else if (Platform.isAndroid) {
+    AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+    dataInfo = androidInfo;
+  }
+  callback(dataInfo);
+}
+
+//  获取设备的指定信息
+class FlutterDeviceInfo {
+  // 获取设备的唯一标识 uuid
+  static Future<String> get platformUid async {
+    var data = await getDeviceInfo(), res;
+    if (Platform.isIOS) {
+      res = data.identifierForVendor;
+    } else if (Platform.isAndroid) {
+      res = data.id;
+    }
+    print("设备id=$res");
+    return res;
+  }
+
+  //  获取设备name
+  static Future<String> get platformName async {
+    var data = await getDeviceInfo(), res;
+    if (Platform.isIOS) {
+      res = data.name;
+    } else if (Platform.isAndroid) {
+      res = data.device;
+    }
+    print("设备name=$res");
+    return res;
+  }
+
+  // 获取设备的model
+  static Future<String> get platformModel async {
+    var data = await getDeviceInfo();
+    print("model=${data.model}");
+
+    return data.model;
+  }
+
+
+}
+
+typedef MyCallBack = Function(String string, String s);
+
+
+
+///可选参数
+void printUserInfo(String name, [int? age]) {
+  if (age != null) {
+    print('姓名：$name----年龄：$age');
+
+  } else {
+    print('姓名：$name----年龄保密');
+
+  }
+
+}
+
+
+/// 定义一个带默认参数的方法
+void printUserInfo2(String name, [String sex = "女", int? age]) {
+  if (age != null) {
+    print('姓名：$name--性别$sex--年龄：$age');
+
+  } else {
+    print('姓名：$name--性别$sex--年龄保密');
+
+  }
+
+}
+
+///定义一个命名参数的方法
+void printUserInfo3(String name, {String sex = "女", int? age}) {
+  if (age != null) {
+    print('姓名：$name--性别$sex--年龄：$age');
+
+  } else {
+    print('姓名：$name--性别$sex--年龄保密');
   }
 }
