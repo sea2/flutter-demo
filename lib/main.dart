@@ -9,6 +9,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutterapp/otherPage.dart';
+import 'package:flutterapp/ui/Dialog.dart';
+import 'package:flutterapp/ui/TextAndButtonPage.dart';
+import 'package:flutterapp/ui/_TabbarPage.dart';
+import 'package:flutterapp/ui/visibilityPage.dart';
+import 'package:flutterapp/utils/ToastUtils.dart';
 
 import 'ListViewPage.dart';
 import 'ui/uiPage.dart';
@@ -81,14 +86,18 @@ class MyHomePage extends StatefulWidget {
   @override
   _MyHomePageState createState() => _MyHomePageState();
 }
-int testInt=1;
 
-class _MyHomePageState extends State<MyHomePage> {
+int testInt = 1;
+
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   int _counter = 0;
   String textInfo = "默认信息";
   String textHttp = "http默认信息";
-
   var isSuccess = false;
+
+  _MyHomePageState() {
+    LogUtil.v("_MyHomePageState", tag: TAG);
+  }
 
   void _incrementCounter() {
     setState(() {
@@ -104,6 +113,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance?.addObserver(this);
+
     getData();
     LogUtil.v("initState", tag: TAG);
     getDeviceInfo().then((data) {
@@ -112,7 +123,15 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    LogUtil.v("didChangeDependencies", tag: TAG);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    LogUtil.v("build", tag: TAG);
+
     // This method is rerun every time setState is called, for instance as done
     // by the _incrementCounter method above.
     //
@@ -128,22 +147,10 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Center(
         // Center is a layout widget. It takes a single child and positions it
         // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Wrap(
+          spacing: 8.0, // 主轴(水平)方向间距
+          runSpacing: 4.0, // 纵轴（垂直）方向间距
+          alignment: WrapAlignment.center, //沿主轴方向居中
           children: <Widget>[
             Text(
               '本地json-$textInfo',
@@ -262,6 +269,76 @@ class _MyHomePageState extends State<MyHomePage> {
               },
               child: Text("调用android原生"),
             ),
+            ElevatedButton(
+              onPressed: () {
+                // 打开`TipRoute`，并等待返回结果
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) {
+                      return TabBarPage();
+                    },
+                  ),
+                );
+              },
+              child: Text("tab切换保持状态"),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all(Color(0xffffffff)),
+                //背景颜色
+                foregroundColor: MaterialStateProperty.all(Color(0xff5E6573)),
+                //字体颜色
+                overlayColor: MaterialStateProperty.all(Color(0xffffffff)),
+                // 高亮色
+                shadowColor: MaterialStateProperty.all(Color(0xffffffff)),
+                //阴影颜色
+                elevation: MaterialStateProperty.all(0),
+                //阴影值
+                textStyle: MaterialStateProperty.all(TextStyle(fontSize: 12)),
+                //字体
+                side: MaterialStateProperty.all(
+                    BorderSide(width: 1, color: Color(0xffCAD0DB))),
+                //边框
+                shape: MaterialStateProperty.all(StadiumBorder(
+                    side: BorderSide(
+                  //设置 界面效果
+                  style: BorderStyle.solid,
+                  color: Color(0xffFF7F24),
+                ))),
+              ), //圆角弧度
+            ),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return VisibilityPage();
+                      },
+                    ),
+                  );
+                },
+                child: Text("显示隐藏")),
+            ElevatedButton(
+                onPressed: () {
+                  showDialog(context: context,builder: (context){
+                    return new ListDialog((data){
+                      ToastUtils.toast("$data",backgroundColor: Color(0x88000000));
+                    });
+                  });
+                },
+                child: Text("dialog")),
+            ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return TextPage();
+                      },
+                    ),
+                  );
+                },
+                child: Text("Text和button控件")),
             FutureBuilder(
               future: decodeCity(),
               builder: (BuildContext context, AsyncSnapshot<City> snapshot) {
@@ -285,8 +362,25 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void getData() {
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    LogUtil.v("didChangeAppLifecycleState${state.toString()}", tag: TAG);
+  }
 
+  @override
+  void deactivate() {
+    super.deactivate();
+    LogUtil.v("deactivate", tag: TAG);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    WidgetsBinding.instance?.addObserver(this);
+    LogUtil.v("dispose", tag: TAG);
+  }
+
+  void getData() {
     //加载本地json
     rootBundle.loadString('assets/city.json').then((value) {
       final jsonMap = json.decode(value);
@@ -404,45 +498,35 @@ class FlutterDeviceInfo {
 
     return data.model;
   }
-
-
 }
 
 typedef MyCallBack = Function(String string, String s);
-
-
 
 ///可选参数
 void printUserInfo(String name, [int? age]) {
   if (age != null) {
     print('姓名：$name----年龄：$age');
-
   } else {
     print('姓名：$name----年龄保密');
-
   }
-
 }
-
 
 /// 定义一个带默认参数的方法
 void printUserInfo2(String name, [String sex = "女", int? age]) {
   if (age != null) {
     print('姓名：$name--性别$sex--年龄：$age');
-
   } else {
     print('姓名：$name--性别$sex--年龄保密');
-
   }
-
 }
 
 ///定义一个命名参数的方法
 void printUserInfo3(String name, {String sex = "女", int? age}) {
   if (age != null) {
     print('姓名：$name--性别$sex--年龄：$age');
-
   } else {
     print('姓名：$name--性别$sex--年龄保密');
   }
 }
+
+

@@ -1,9 +1,7 @@
-
 import 'dart:convert';
 
-class Utils{
+import 'Log.dart';
 
-
-
+class Utils {
 
 }
